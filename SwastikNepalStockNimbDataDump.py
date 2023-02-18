@@ -1,10 +1,14 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 import time
 
 
+options = Options()
+options.headless = True
+
 # Open the website using Selenium
-driver = webdriver.Firefox()
+driver = webdriver.Firefox(options=options)
 driver.get("https://www.nepalstock.com.np/company/detail/131")
 
 # Wait for the page to load
