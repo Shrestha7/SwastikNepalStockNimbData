@@ -1,9 +1,12 @@
+import time
 from decouple import config
+
 import pymysql
 from bs4 import BeautifulSoup
 from selenium import webdriver
+
 # from selenium.webdriver.firefox.options import Options
-import time
+
 
 # Read the settings from the .env file
 HOST = config("HOST")
@@ -33,7 +36,8 @@ soup = BeautifulSoup(html, "html.parser")
 data = soup.find_all("td")
 
 # Connect to Mysql
-connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABASE)
+connection = pymysql.connect(
+    host=HOST, user=USER, password=PASSWORD, db=DATABASE)
 
 # Insert the data into a Mysql table
 try:
