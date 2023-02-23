@@ -9,7 +9,7 @@ from selenium import webdriver
 
 
 # Read the settings from the .env file
-HOST = config("HOST")
+HOST = config("HOST", default="localhost")
 USER = config("USER")
 PASSWORD = config("PASSWORD")
 DATABASE = config("DATABASE")
@@ -18,7 +18,7 @@ DATABASE = config("DATABASE")
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
 driver = webdriver.Firefox(options=options)
-driver.get("https://www.nepalstock.com.np/company/detail/131")
+driver.get("https://www.nepalstock.com.np/company/detail/132")
 
 # Wait for the page to load
 time.sleep(3)
