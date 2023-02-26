@@ -47,15 +47,60 @@ try:
             """
             CREATE TABLE IF NOT EXISTS nepalstock(
                 id INT NOT NULL AUTO_INCREMENT,
-                data TEXT,
+                instrument_type TEXT,
+                listing_date TEXT,
+                last_tradedprice TEXT,
+                total_traded_quantity TEXT,
+                total_trades TEXT,
+                previous_day_closeprice TEXT,
+                price TEXT,
+                52weeks TEXT,
+                openPrice TEXT,
+                closeprice TEXT,
+                total_listedShares TEXT,
+                total_paidupvalues TEXT,
+                marketcapitalization TEXT,
                 PRIMARY KEY(id)
             )
         """
         )
         # Insert the data
         for item in data:
-            sql = "INSERT INTO nepalstock(data) VALUES(%s)"
-            cursor.execute(sql, (item.text,))
+            sql = """
+                    INSERT INTO nepalstock(
+                        instrument_type,
+                        listing_date ,
+                        last_tradedprice ,
+                        total_traded_quantity ,
+                        total_trades ,
+                        previous_day_closeprice ,
+                        price ,
+                        52weeks ,
+                        openPrice ,
+                        closeprice ,
+                        total_listedShares ,
+                        total_paidupvalues ,
+                        marketcapitalization 
+                    ) VALUES(
+                        %s,%s,%s,%s,%s,%s,%s,
+                        %s,%s,%s,%s,%s,%s
+                    )
+                """
+            cursor.execute(sql, (
+                data[0].text.strip(),
+                data[1].text.strip(),
+                data[2].text.strip(),
+                data[3].text.strip(),
+                data[4].text.strip(),
+                data[5].text.strip(),
+                data[6].text.strip(),
+                data[7].text.strip(),
+                data[8].text.strip(),
+                data[9].text.strip(),
+                data[10].text.strip(),
+                data[11].text.strip(),
+                data[12].text.strip(),
+                ))
 
     # Commit the changes
     connection.commit()
