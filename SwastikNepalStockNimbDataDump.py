@@ -5,9 +5,6 @@ import pymysql
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-# from selenium.webdriver.firefox.options import Options
-
-
 # Read the settings from the .env file
 HOST = config("HOST", default="localhost")
 USER = config("USER")
@@ -34,10 +31,9 @@ soup = BeautifulSoup(html, "html.parser")
 
 # Extract the data you want to scrape
 data = soup.find_all("td")
-
+print(data)
 # Connect to Mysql
-connection = pymysql.connect(
-    host=HOST, user=USER, password=PASSWORD, db=DATABASE)
+connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABASE)
 
 # Insert the data into a Mysql table
 try:
@@ -54,53 +50,49 @@ try:
                 total_trades TEXT,
                 previous_day_closeprice TEXT,
                 price TEXT,
-                52weeks TEXT,
+                weeks52 TEXT,
                 openPrice TEXT,
                 closeprice TEXT,
                 total_listedShares TEXT,
                 total_paidupvalues TEXT,
                 marketcapitalization TEXT,
+                note TEXT,
+                promoter_shares TEXT,
+                public_shares TEXT,
+                total_listed_shares TEXT,
                 PRIMARY KEY(id)
             )
         """
         )
         # Insert the data
-        for item in data:
-            sql = """
-                    INSERT INTO nepalstock(
-                        instrument_type,
-                        listing_date ,
-                        last_tradedprice ,
-                        total_traded_quantity ,
-                        total_trades ,
-                        previous_day_closeprice ,
-                        price ,
-                        52weeks ,
-                        openPrice ,
-                        closeprice ,
-                        total_listedShares ,
-                        total_paidupvalues ,
-                        marketcapitalization 
-                    ) VALUES(
-                        %s,%s,%s,%s,%s,%s,%s,
-                        %s,%s,%s,%s,%s,%s
-                    )
-                """
-            cursor.execute(sql, (
-                data[0].text.strip(),
-                data[1].text.strip(),
-                data[2].text.strip(),
-                data[3].text.strip(),
-                data[4].text.strip(),
-                data[5].text.strip(),
-                data[6].text.strip(),
-                data[7].text.strip(),
-                data[8].text.strip(),
-                data[9].text.strip(),
-                data[10].text.strip(),
-                data[11].text.strip(),
-                data[12].text.strip(),
-                ))
+        row = [item.text for item in data]
+        sql = """
+            INSERT INTO nepalstock(
+                instrument_type,
+                listing_date ,
+                last_tradedprice ,
+                total_traded_quantity ,
+                total_trades ,
+                previous_day_closeprice ,
+                price ,
+                weeks52 ,
+                openPrice ,
+                closeprice ,
+                total_listedShares ,
+                total_paidupvalues ,
+                marketcapitalization,
+                note ,
+                promoter_shares,
+                public_shares ,
+                total_listed_shares 
+            ) VALUES(
+                %s,%s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+            )
+        """
+
+        cursor.execute(sql, tuple(row))
+
 
     # Commit the changes
     connection.commit()
