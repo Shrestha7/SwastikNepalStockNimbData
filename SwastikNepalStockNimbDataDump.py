@@ -43,6 +43,7 @@ try:
             """
             CREATE TABLE IF NOT EXISTS nepalstock(
                 id INT NOT NULL AUTO_INCREMENT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 instrument_type TEXT,
                 listing_date TEXT,
                 last_tradedprice TEXT,
@@ -92,8 +93,6 @@ try:
         """
 
         cursor.execute(sql, tuple(row))
-
-
     # Commit the changes
     connection.commit()
 
