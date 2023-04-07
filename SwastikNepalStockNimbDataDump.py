@@ -1,6 +1,6 @@
 import time
 from decouple import config
-
+from fake_useragent import UserAgent
 import pymysql
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -11,10 +11,16 @@ USER = config("USER")
 PASSWORD = config("PASSWORD")
 DATABASE = config("DATABASE")
 
+# Generate a random user agent
+ua = UserAgent()
+headers = {"User-Agent": ua.random}
+
+
 # Open the website using Selenium
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
 driver = webdriver.Firefox(options=options)
+driver.header_overrides = headers
 driver.get("https://www.nepalstock.com.np/company/detail/132")
 
 # Wait for the page to load
@@ -30,7 +36,8 @@ driver.close()
 soup = BeautifulSoup(html, "html.parser")
 
 # Extract the data you want to scrape
-data = soup.find_all("td")
+# data = soup.find_all("td")
+data = soup.select("table.table tr td")[1:15]
 print(data)
 # Connect to Mysql
 connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABASE)
@@ -58,15 +65,20 @@ try:
                 total_paidupvalues TEXT,
                 marketcapitalization TEXT,
                 note TEXT,
-                promoter_shares TEXT,
-                public_shares TEXT,
-                total_listed_shares TEXT,
                 PRIMARY KEY(id)
             )
         """
         )
         # Insert the data
-        row = [item.text for item in data]
+        # row = [item.text for item in data]
+        row = [
+            item.get_text(strip=True)
+            for item in data
+            if item.name == "td"
+        ]
+        print(row)
+        if len(row) != 14:
+            raise ValueError("Expected 14 items in row, got %d" % len(row))
         sql = """
             INSERT INTO nepalstock(
                 instrument_type,
@@ -82,19 +94,18 @@ try:
                 total_listedShares ,
                 total_paidupvalues ,
                 marketcapitalization,
-                note ,
-                promoter_shares,
-                public_shares ,
-                total_listed_shares 
+                note
+                
             ) VALUES(
                 %s,%s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s,%s
             )
         """
 
         cursor.execute(sql, tuple(row))
-    # Commit the changes
-    connection.commit()
+        # Commit the changes
+        connection.commit()
+
 
 finally:
     # close the connection
