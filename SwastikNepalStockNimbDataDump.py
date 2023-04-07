@@ -12,11 +12,14 @@ PASSWORD = config("PASSWORD")
 DATABASE = config("DATABASE")
 
 # Generate a random user agent
+# Help to mimic the behavior of real web browser and 
+# prevent websites from detecting the scraper and blocking it.
 ua = UserAgent()
 headers = {"User-Agent": ua.random}
 
 
 # Open the website using Selenium
+# Use FirefoxOptions to open the browser in headless mode
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
 driver = webdriver.Firefox(options=options)
@@ -36,6 +39,7 @@ driver.close()
 soup = BeautifulSoup(html, "html.parser")
 
 # Extract the data you want to scrape
+#Find all the td tags inside table tags and extract the text content
 # data = soup.find_all("td")
 data = soup.select("table.table tr td")[1:15]
 print(data)
@@ -69,16 +73,24 @@ try:
             )
         """
         )
-        # Insert the data
+        
         # row = [item.text for item in data]
+        # creates a list of 14 elements called row.
+        # check if <td> tag if condtion
+        # if td tag then gets text and remove whitespaces due to strip = true.
+        
         row = [
             item.get_text(strip=True)
             for item in data
             if item.name == "td"
         ]
         print(row)
+        # check row list= 14, if !=14 raises valueerror.
+        # to ensure the data is scraped correctly,
+        # to prevent incorrect data from being inserted into database.
         if len(row) != 14:
             raise ValueError("Expected 14 items in row, got %d" % len(row))
+        # Insert the data
         sql = """
             INSERT INTO nepalstock(
                 instrument_type,
@@ -101,7 +113,10 @@ try:
                 %s,%s,%s,%s,%s,%s,%s
             )
         """
-
+        # inserts the data stored in the row list
+        # into the corresponding columns of the table
+        # in the database.
+        # tuple function used to convert row list into tuple.
         cursor.execute(sql, tuple(row))
         # Commit the changes
         connection.commit()
