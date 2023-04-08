@@ -41,8 +41,8 @@ soup = BeautifulSoup(html, "html.parser")
 # Extract the data you want to scrape
 #Find all the td tags inside table tags and extract the text content
 # data = soup.find_all("td")
-data = soup.select("table.table tr td")[1:15]
-print(data)
+data = soup.select("table.table tr td")[0:13]
+# print(data[::])
 # Connect to Mysql
 connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABASE)
 
@@ -50,28 +50,51 @@ connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABAS
 try:
     with connection.cursor() as cursor:
         # Create the table(if it doesn't exist)
+        # cursor.execute(
+        #     """
+        #     CREATE TABLE IF NOT EXISTS nepalstock(
+        #         id INT NOT NULL AUTO_INCREMENT,
+        #         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        #         instrument_type TEXT,
+        #         listing_date TEXT,
+        #         last_tradedprice TEXT,
+        #         total_traded_quantity TEXT,
+        #         total_trades TEXT,
+        #         previous_day_closeprice TEXT,
+        #         price TEXT,
+        #         weeks52 TEXT,
+        #         openPrice TEXT,
+        #         closeprice TEXT,
+        #         total_listedShares TEXT,
+        #         total_paidupvalues TEXT,
+        #         marketcapitalization TEXT,
+        #         note TEXT,
+        #         PRIMARY KEY(id)
+        #     )
+        # """
+        # )
         cursor.execute(
             """
-            CREATE TABLE IF NOT EXISTS nepalstock(
+            CREATE TABLE IF NOT EXISTS nepse(
                 id INT NOT NULL AUTO_INCREMENT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                instrument_type TEXT,
-                listing_date TEXT,
-                last_tradedprice TEXT,
-                total_traded_quantity TEXT,
-                total_trades TEXT,
-                previous_day_closeprice TEXT,
-                price TEXT,
-                weeks52 TEXT,
-                openPrice TEXT,
-                closeprice TEXT,
-                total_listedShares TEXT,
-                total_paidupvalues TEXT,
-                marketcapitalization TEXT,
-                note TEXT,
+                AsOfDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                InstrumentType TEXT,
+                ListingDate TEXT ,
+                LastTradedPrice TEXT,
+                TotalTradedQuantity TEXT ,
+                TotalTrades TEXT ,
+                PreviousDayClosePrice TEXT ,
+                HighPriceLowPrice TEXT , 
+                52WeekHigh52WeekLow TEXT ,
+                OpenPrice TEXT ,
+                ClosePrice TEXT ,
+                TotalListedShares TEXT ,
+                TotalPaidupValue TEXT ,
+                MarketCapitalization TEXT,
                 PRIMARY KEY(id)
             )
-        """
+            """
+            
         )
         
         # row = [item.text for item in data]
@@ -84,33 +107,55 @@ try:
             for item in data
             if item.name == "td"
         ]
-        print(row)
+        # print(row)
         # check row list= 14, if !=14 raises valueerror.
         # to ensure the data is scraped correctly,
         # to prevent incorrect data from being inserted into database.
-        if len(row) != 14:
-            raise ValueError("Expected 14 items in row, got %d" % len(row))
+        if len(row) != 13:
+            raise ValueError("Expected 13 items in row, got %d" % len(row))
         # Insert the data
-        sql = """
-            INSERT INTO nepalstock(
-                instrument_type,
-                listing_date ,
-                last_tradedprice ,
-                total_traded_quantity ,
-                total_trades ,
-                previous_day_closeprice ,
-                price ,
-                weeks52 ,
-                openPrice ,
-                closeprice ,
-                total_listedShares ,
-                total_paidupvalues ,
-                marketcapitalization,
-                note
+        # sql = """
+        #     INSERT INTO nepalstock(
+        #         instrument_type,
+        #         listing_date ,
+        #         last_tradedprice ,
+        #         total_traded_quantity ,
+        #         total_trades ,
+        #         previous_day_closeprice ,
+        #         price ,
+        #         weeks52 ,
+        #         openPrice ,
+        #         closeprice ,
+        #         total_listedShares ,
+        #         total_paidupvalues ,
+        #         marketcapitalization,
+        #         note
                 
-            ) VALUES(
+        #     ) VALUES(
+        #         %s,%s,%s,%s,%s,%s,%s,
+        #         %s,%s,%s,%s,%s,%s,%s
+        #     )
+        # """
+
+        sql= """
+            INSERT INTO nepse(
+            InstrumentType ,
+            ListingDate ,
+            LastTradedPrice,
+            TotalTradedQuantity ,
+            TotalTrades ,
+            PreviousDayClosePrice ,
+            HighPriceLowPrice , 
+            52WeekHigh52WeekLow ,
+            OpenPrice ,
+            ClosePrice ,
+            TotalListedShares ,
+            TotalPaidupValue ,
+            MarketCapitalization
+            )
+            Values(
                 %s,%s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s
             )
         """
         # inserts the data stored in the row list
