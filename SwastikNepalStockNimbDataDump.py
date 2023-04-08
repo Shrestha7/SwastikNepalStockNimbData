@@ -27,7 +27,7 @@ driver.header_overrides = headers
 driver.get("https://www.nepalstock.com.np/company/detail/132")
 
 # Wait for the page to load
-time.sleep(3)
+time.sleep(7)
 
 # Extract the page source
 html = driver.page_source
