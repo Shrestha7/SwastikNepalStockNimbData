@@ -2,3 +2,8 @@ HOST=localhost
 USER=your_username
 PASSWORD=your_password
 DATABASE=your_database
+SLEEP_TIME=Sleeping_time
+URL=Your_URL
+TABLE_NAME=your_table
+
+pyinstaller --add-data=".env;." --add-data="<Your_Directory>\fake_useragent;fake_useragent" --noconsole  SwastikNepalStockNimbDataDump.py
