@@ -1,3 +1,4 @@
+import os
 import time
 from decouple import config
 from fake_useragent import UserAgent
@@ -10,6 +11,10 @@ HOST = config("HOST", default="localhost")
 USER = config("USER")
 PASSWORD = config("PASSWORD")
 DATABASE = config("DATABASE")
+table_name = config("TABLE_NAME", cast=str)
+sleep_time = config("SLEEP_TIME", cast=int)
+url_value = config("URL", cast=str)
+
 
 # Generate a random user agent
 # Help to mimic the behavior of real web browser and 
@@ -24,10 +29,10 @@ options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
 driver = webdriver.Firefox(options=options)
 driver.header_overrides = headers
-driver.get("https://www.nepalstock.com.np/company/detail/132")
+driver.get(url_value)
 
 # Wait for the page to load
-time.sleep(7)
+time.sleep(sleep_time)
 
 # Extract the page source
 html = driver.page_source
@@ -75,7 +80,7 @@ try:
         # )
         cursor.execute(
             """
-            CREATE TABLE IF NOT EXISTS nepse(
+            CREATE TABLE IF NOT EXISTS {}(
                 id INT NOT NULL AUTO_INCREMENT,
                 AsOfDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 InstrumentType TEXT,
@@ -93,7 +98,7 @@ try:
                 MarketCapitalization TEXT,
                 PRIMARY KEY(id)
             )
-            """
+            """.format(table_name)
             
         )
         
@@ -103,7 +108,7 @@ try:
         # if td tag then gets text and remove whitespaces due to strip = true.
         
         row = [
-            item.get_text(strip=True)
+            item.get_text(strip=True).replace(",", "")
             for item in data
             if item.name == "td"
         ]
@@ -137,8 +142,8 @@ try:
         #     )
         # """
 
-        sql= """
-            INSERT INTO nepse(
+        sql= f"""
+            INSERT INTO {table_name}(
             InstrumentType ,
             ListingDate ,
             LastTradedPrice,
@@ -171,7 +176,7 @@ finally:
     # close the connection
     connection.close()
 
-
+os.system("taskkill /f /im geckodriver.exe")
 # write the data to a Notepad file
 # with open("data.txt", "w", encoding='utf-8') as file:
 #     for item in data:
