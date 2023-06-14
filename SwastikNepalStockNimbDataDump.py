@@ -49,7 +49,7 @@ soup = BeautifulSoup(html, "html.parser")
 #Find all the td tags inside table tags and extract the text content
 # data = soup.find_all("td")
 data = soup.select("table.table tr td")[0:13]
-# print(data[::])
+print(data[::])
 # Connect to Mysql
 connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABASE)
 
@@ -114,7 +114,7 @@ try:
             for item in data
             if item.name == "td"
         ]
-        # print(row)
+        print(row)
         # check row list= 14, if !=14 raises valueerror.
         # to ensure the data is scraped correctly,
         # to prevent incorrect data from being inserted into database.
