@@ -1,7 +1,7 @@
 import os
 import time
 from decouple import config
-
+from fake_useragent import UserAgent
 import pymysql
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -16,9 +16,19 @@ sleep_time = config("SLEEP_TIME", cast=int)
 url_value = config("URL", cast=str)
 
 
+# Generate a random user agent
+# Help to mimic the behavior of real web browser and 
+# prevent websites from detecting the scraper and blocking it.
+ua = UserAgent()
+headers = {"User-Agent": ua.random}
+
+
 # Open the website using Selenium
+# Use FirefoxOptions to open the browser in headless mode
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
+options.add_argument("--log-level=0")
+options.add_argument('--disable-gpu')
 driver = webdriver.Firefox(options=options)
 driver.header_overrides = headers
 driver.get(url_value)
@@ -36,8 +46,10 @@ driver.close()
 soup = BeautifulSoup(html, "html.parser")
 
 # Extract the data you want to scrape
-data = soup.find_all("td")
-print(data)
+#Find all the td tags inside table tags and extract the text content
+# data = soup.find_all("td")
+data = soup.select("table.table tr td")[0:13]
+# print(data[::])
 # Connect to Mysql
 connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABASE)
 
@@ -45,28 +57,47 @@ connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, db=DATABAS
 try:
     with connection.cursor() as cursor:
         # Create the table(if it doesn't exist)
+        # cursor.execute(
+        #     """
+        #     CREATE TABLE IF NOT EXISTS nepalstock(
+        #         id INT NOT NULL AUTO_INCREMENT,
+        #         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        #         instrument_type TEXT,
+        #         listing_date TEXT,
+        #         last_tradedprice TEXT,
+        #         total_traded_quantity TEXT,
+        #         total_trades TEXT,
+        #         previous_day_closeprice TEXT,
+        #         price TEXT,
+        #         weeks52 TEXT,
+        #         openPrice TEXT,
+        #         closeprice TEXT,
+        #         total_listedShares TEXT,
+        #         total_paidupvalues TEXT,
+        #         marketcapitalization TEXT,
+        #         note TEXT,
+        #         PRIMARY KEY(id)
+        #     )
+        # """
+        # )
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS {}(
                 id INT NOT NULL AUTO_INCREMENT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                instrument_type TEXT,
-                listing_date TEXT,
-                last_tradedprice TEXT,
-                total_traded_quantity TEXT,
-                total_trades TEXT,
-                previous_day_closeprice TEXT,
-                price TEXT,
-                weeks52 TEXT,
-                openPrice TEXT,
-                closeprice TEXT,
-                total_listedShares TEXT,
-                total_paidupvalues TEXT,
-                marketcapitalization TEXT,
-                note TEXT,
-                promoter_shares TEXT,
-                public_shares TEXT,
-                total_listed_shares TEXT,
+                AsOfDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                InstrumentType TEXT,
+                ListingDate TEXT ,
+                LastTradedPrice TEXT,
+                TotalTradedQuantity TEXT ,
+                TotalTrades TEXT ,
+                PreviousDayClosePrice TEXT ,
+                HighPriceLowPrice TEXT , 
+                52WeekHigh52WeekLow TEXT ,
+                OpenPrice TEXT ,
+                ClosePrice TEXT ,
+                TotalListedShares TEXT ,
+                TotalPaidupValue TEXT ,
+                MarketCapitalization TEXT,
                 PRIMARY KEY(id)
             )
             """.format(table_name)
@@ -131,19 +162,23 @@ try:
             )
             Values(
                 %s,%s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s
             )
         """
-
+        # inserts the data stored in the row list
+        # into the corresponding columns of the table
+        # in the database.
+        # tuple function used to convert row list into tuple.
         cursor.execute(sql, tuple(row))
-    # Commit the changes
-    connection.commit()
+        # Commit the changes
+        connection.commit()
+
 
 finally:
     # close the connection
     connection.close()
 
-os.system("taskkill /f /im geckodriver.exe")
+# os.system("taskkill /f /im geckodriver.exe")
 # write the data to a Notepad file
 # with open("data.txt", "w", encoding='utf-8') as file:
 #     for item in data:
